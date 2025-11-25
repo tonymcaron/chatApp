@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
+import { ImageBackground } from 'react-native';
 
 
 const Start = ({ navigation, isConnected }) => {
@@ -22,67 +23,76 @@ const Start = ({ navigation, isConnected }) => {
     '#B9C6AE'  // Light Green - Fresh and natural
   ];
 
+
   return (
-    <View style={styles.backgroundContainer}>
+    <ImageBackground
+      style={styles.bgImage}
+      source={require("../assets/background-image.png")}
+      resizeMode="cover"
+    >
       {/* KeyboardAvoidingView prevents keyboard from covering the input fields */}
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+
         <View style={styles.container}>
           {/* Title */}
-          <Text style={styles.title}>Chat App</Text>
-          
+          <Text style={styles.title}>Let's Chat!</Text>
+
           {/* Input Section */}
           <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={name}
-            onChangeText={setName}
-            placeholder="Your Name"
-            placeholderTextColor="#757083"
-          />
-          
-          {/* Color Selection */}
-          <Text style={styles.colorText}>Choose Background Color:</Text>
-          <View style={styles.colorContainer}>
-            {backgroundColors.map((color, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.colorOption,
-                  { backgroundColor: color },
-                  selectedColor === color && styles.selectedColor
-                ]}
-                onPress={() => setSelectedColor(color)}
-                accessible={true}
-                accessibilityLabel={`Background color option ${index + 1}`}
-                accessibilityRole="button"
-              />
-            ))}
+            <TextInput
+              style={styles.textInput}
+              value={name}
+              onChangeText={setName}
+              placeholder="Your Name"
+              placeholderTextColor="#757083"
+            />
+
+            {/* Color Selection */}
+            <Text style={styles.colorText}>Choose Background Color:</Text>
+            <View style={styles.colorContainer}>
+              {backgroundColors.map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.colorOption,
+                    { backgroundColor: color },
+                    selectedColor === color && {
+                      borderWidth: 3,
+                      borderColor: '#757083',
+                    }
+                  ]}
+                  onPress={() => setSelectedColor(color)}
+                />
+              ))}
+            </View>
+
+            {/* Start Chat Button */}
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={() => navigation.navigate('Chat', { name: name, color: selectedColor })}
+              accessible={true}
+              accessibilityLabel="Start chatting"
+              accessibilityRole="button"
+            >
+              <Text style={styles.startButtonText}>Start Chatting</Text>
+            </TouchableOpacity>
           </View>
-          
-          {/* Start Chat Button */}
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={() => navigation.navigate('Chat')}
-            accessible={true}
-            accessibilityLabel="Start chatting"
-            accessibilityRole="button"
-          >
-            <Text style={styles.startButtonText}>Start Chatting</Text>
-          </TouchableOpacity>
         </View>
-      </View>
       </KeyboardAvoidingView>
-    </View>
+    </ImageBackground >
   );
 };
 
 const styles = StyleSheet.create({
-  backgroundContainer: {
+  bgImage: {
     flex: 1,
-    backgroundColor: '#2C3E50', // Beautiful dark blue-gray background
+    width: "100%",
+    alignItems: "center",
+    height: "100%",
+    justifyContent: "center",
   },
   // KeyboardAvoidingView to handle keyboard behavior on start screen
   keyboardAvoidingView: {
@@ -92,7 +102,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
   },
   title: {
     fontSize: 45,
@@ -147,10 +156,6 @@ const styles = StyleSheet.create({
     borderRadius: 25, // Half of width/height to make it circular
     borderWidth: 3,
     borderColor: 'transparent',
-  },
-  selectedColor: {
-    borderColor: '#757083',
-    borderWidth: 3,
   },
   startButton: {
     backgroundColor: '#757083',
