@@ -7,22 +7,32 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  ImageBackground
 } from 'react-native';
-import { ImageBackground } from 'react-native';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 
 
-const Start = ({ navigation, isConnected }) => {
+const Start = ({ navigation }) => {
+  const auth = getAuth();
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState('#090C08');
 
   const backgroundColors = [
-    '#090C08', // Black - Classic and professional
-    '#474056', // Dark Purple - Modern and sleek
-    '#8A95A5', // Blue Gray - Calm and neutral
-    '#B9C6AE'  // Light Green - Fresh and natural
+    '#090C08', // Black
+    '#474056', // Dark Purple
+    '#8A95A5', // Blue Gray
+    '#B9C6AE'  // Light Green
   ];
 
+  const signInUser = () => {
+    signInAnonymously(auth).then(result => {
+      navigation.navigate("Chat", { userID: result.user.uid, name: name, backgroundColor: selectedColor });
+      Alert.alert("Signed in successfully");
+    }).catch(err => {
+      Alert.alert("Unable to sign in, try again later");
+    })
+  }
 
   return (
     <ImageBackground
@@ -71,11 +81,18 @@ const Start = ({ navigation, isConnected }) => {
 
             {/* Start Chat Button */}
             <TouchableOpacity
-              style={styles.startButton}
-              onPress={() => navigation.navigate('Chat', { name: name, color: selectedColor })}
               accessible={true}
               accessibilityLabel="Start chatting"
               accessibilityRole="button"
+              accessibilityHint="Press this button to start the chat"
+              style={styles.startButton}
+              onPress={() => {
+                if (name == '') {
+                  Alert.alert('Please enter a username');
+                } else {
+                  signInUser();
+                }
+              }}
             >
               <Text style={styles.startButtonText}>Start Chatting</Text>
             </TouchableOpacity>

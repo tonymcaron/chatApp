@@ -1,29 +1,35 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import React, { useEffect, useMemo, useRef } from 'react';
-
-import { useNetInfo } from '@react-native-community/netinfo';
-
-// import the screens
-import Start from './components/Start';
-import Chat from './components/Chat';
-
-// import react Navigation
+// Import react Navigation
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-
-
 const Stack = createNativeStackNavigator();
 
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+
+import { StyleSheet } from 'react-native';
+
+// Import the screens
+import Start from './components/Start';
+import Chat from './components/Chat';
+
 const App = () => {
-  // Real-time network info
-  const netInfo = useNetInfo();
-  const isConnected = useMemo(() => {
-    // Treat undefined isInternetReachable as true when connected to avoid false negatives on first load
-    const reachable = netInfo.isInternetReachable;
-    return Boolean(netInfo.isConnected && (reachable === undefined || reachable));
-  }, [netInfo.isConnected, netInfo.isInternetReachable]);
+
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyA8fb8kv2N7_9P-flSqo8Cc4SLbVE0mSHE",
+    authDomain: "chatapp-d3684.firebaseapp.com",
+    projectId: "chatapp-d3684",
+    storageBucket: "chatapp-d3684.firebasestorage.app",
+    messagingSenderId: "795202748354",
+    appId: "1:795202748354:web:714b49c25cd50b55afe05b"
+  }
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig)
+
+  // Initialize Cloud Firestore and get a reference to the service
+  const db = getFirestore(app);
 
   return (
     <NavigationContainer>
@@ -39,12 +45,16 @@ const App = () => {
           },
         }}
       >
-        <Stack.Screen name="Start" options={{ title: 'Welcome' }}>
-          {(props) => <Start {...props} isConnected={isConnected} />}
+        <Stack.Screen
+          name="Start"
+          component={Start}
+          options={{ title: 'Welcome' }}
+        >
         </Stack.Screen>
         {/* Pass the Firestore database instance to Chat without putting it in navigation state */}
-        <Stack.Screen name="Chat">
-          {(props) => <Chat {...props} isConnected={isConnected} />}
+        <Stack.Screen
+          name="Chat">
+          {props => <Chat db={db} {...props} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
