@@ -1,35 +1,50 @@
+import { StyleSheet } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+
+// Firebase instances (initialized centrally in firebase.js)
+import { db, storage } from './firebase';
+import { enableNetwork, disableNetwork } from 'firebase/firestore';
+import { useNetInfo } from '@react-native-community/netinfo';
+
+// Import the screens
+import Start from './components/Start';
+import Chat from './components/Chat';
+
 // Import react Navigation
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 const Stack = createNativeStackNavigator();
 
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-
-import { StyleSheet } from 'react-native';
-
-// Import the screens
-import Start from './components/Start';
-import Chat from './components/Chat';
-
 const App = () => {
+  // Real-time network info
+  const netInfo = useNetInfo();
+  const isConnected = useMemo(() => {
+    // Treat undefined isInternetReachable as true when connected to avoid false negatives on first load
+    const reachable = netInfo.isInternetReachable;
+    return Boolean(netInfo.isConnected && (reachable === undefined || reachable));
+  }, [netInfo.isConnected, netInfo.isInternetReachable]);
+  // removed duplicate immediate smoke test; handled below in dev-only effect
 
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyA8fb8kv2N7_9P-flSqo8Cc4SLbVE0mSHE",
-    authDomain: "chatapp-d3684.firebaseapp.com",
-    projectId: "chatapp-d3684",
-    storageBucket: "chatapp-d3684.firebasestorage.app",
-    messagingSenderId: "795202748354",
-    appId: "1:795202748354:web:714b49c25cd50b55afe05b"
-  }
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig)
-
-  // Initialize Cloud Firestore and get a reference to the service
-  const db = getFirestore(app);
+  // Toggle Firestore network based on connectivity
+  useEffect(() => {
+    let cancelled = false;
+    const toggle = async () => {
+      try {
+        if (isConnected) {
+          await enableNetwork(db);
+        } else {
+          await disableNetwork(db);
+        }
+      } catch (e) {
+        if (__DEV__) console.warn('Firestore network toggle failed:', e?.message || e);
+      }
+    };
+    toggle();
+    return () => {
+      cancelled = true;
+    };
+  }, [isConnected]);
 
   return (
     <NavigationContainer>
@@ -45,16 +60,12 @@ const App = () => {
           },
         }}
       >
-        <Stack.Screen
-          name="Start"
-          component={Start}
-          options={{ title: 'Welcome' }}
-        >
+        <Stack.Screen name="Start" options={{ title: 'Welcome' }}>
+          {(props) => <Start {...props} isConnected={isConnected} />}
         </Stack.Screen>
         {/* Pass the Firestore database instance to Chat without putting it in navigation state */}
-        <Stack.Screen
-          name="Chat">
-          {props => <Chat db={db} {...props} />}
+        <Stack.Screen name="Chat">
+          {(props) => <Chat {...props} db={db} storage={storage} isConnected={isConnected} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>

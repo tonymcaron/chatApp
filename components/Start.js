@@ -10,29 +10,64 @@ import {
   Platform,
   ImageBackground
 } from 'react-native';
-import { getAuth, signInAnonymously } from 'firebase/auth';
 
+import { signInAnonymouslyRN } from '../firebase';
 
-const Start = ({ navigation }) => {
-  const auth = getAuth();
+const Start = ({ navigation, isConnected }) => {
+  // State to store the user's name input
   const [name, setName] = useState('');
+
+  // State to store the selected background color (defaults to black)
   const [selectedColor, setSelectedColor] = useState('#090C08');
 
+  // Available background colors for the chat screen
+  // These colors provide good contrast and readability for chat messages
   const backgroundColors = [
-    '#090C08', // Black
-    '#474056', // Dark Purple
-    '#8A95A5', // Blue Gray
-    '#B9C6AE'  // Light Green
+    '#090C08', // Black - Classic and professional
+    '#474056', // Dark Purple - Modern and sleek
+    '#8A95A5', // Blue Gray - Calm and neutral
+    '#B9C6AE'  // Light Green - Fresh and natural
   ];
 
-  const signInUser = () => {
-    signInAnonymously(auth).then(result => {
-      navigation.navigate("Chat", { userID: result.user.uid, name: name, backgroundColor: selectedColor });
-      Alert.alert("Signed in successfully");
-    }).catch(err => {
-      Alert.alert("Unable to sign in, try again later");
-    })
-  }
+  /**
+   * Anonymous sign-in then navigate to Chat.
+   * If successful, passes uid, name, and selected background color.
+   */
+  const signInUser = async () => {
+    if (name.trim() === '') {
+      Alert.alert('Please enter your name', 'You need to enter a name to start chatting.');
+      return;
+    }
+
+    try {
+      // If offline, skip auth and navigate with a temporary offline user id
+      if (!isConnected) {
+        const offlineId = `offline_${Date.now()}`;
+        navigation.navigate('Chat', {
+          userId: offlineId,
+          name: name.trim(),
+          backgroundColor: selectedColor,
+        });
+        return;
+      }
+
+      const result = await signInAnonymouslyRN();
+      const user = result?.user;
+
+      if (user?.uid) {
+        navigation.navigate('Chat', {
+          userId: user.uid,
+          name: name.trim(),
+          backgroundColor: selectedColor,
+        });
+      } else {
+        Alert.alert('Sign-in failed', 'No user returned from authentication.');
+      }
+    } catch (e) {
+      const message = e?.message ?? 'Unknown error';
+      Alert.alert('Unable to sign in', message);
+    }
+  };
 
   return (
     <ImageBackground
