@@ -12,7 +12,7 @@ import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firesto
 const MESSAGES_KEY = 'chat_messages';
 
 const Chat = ({ route, navigation, db }) => {
-  const { name, color, userID } = route.params;
+  const { name, backgroundColor, userId } = route.params;
   // State to store chat messages
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -54,7 +54,7 @@ const Chat = ({ route, navigation, db }) => {
     navigation.setOptions({ title: name });
 
     // Query to sort messages in descending order
-    const q = query(collection(db, "message"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
 
     unsubMessages = onSnapshot(q, (documentsSnapshot) => {
       let newMessages = [];
@@ -76,25 +76,29 @@ const Chat = ({ route, navigation, db }) => {
 
   return (
     <View style={[styles.container]}>
-      <GiftedChat
-        messages={messages}
-        renderBubble={renderBubble}
-        renderInputToolbar={renderInputToolbar}
-        onSend={messages => onSend(messages)}
-        user={{
-          _id: userID,
-          name: name
-        }}
-        alwaysShowSend
-        minInputToolbarHeight={60}
-        listViewProps={{
-          style: { backgroundColor: color }
-        }}
-        text={text}
-        onInputTextChanged={setText}
-      />
-
-      {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={90}
+      >
+        <GiftedChat
+          messages={messages}
+          renderBubble={renderBubble}
+          renderInputToolbar={renderInputToolbar}
+          onSend={messages => onSend(messages)}
+          user={{
+            _id: userId,
+            name: name
+          }}
+          alwaysShowSend
+          minInputToolbarHeight={60}
+          listViewProps={{
+            style: { backgroundColor: backgroundColor }
+          }}
+          text={text}
+          onInputTextChanged={setText}
+        />
+      </KeyboardAvoidingView>
     </View>
   );
 };
