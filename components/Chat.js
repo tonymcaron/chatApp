@@ -6,6 +6,7 @@ import {
   Platform,
   Alert
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { GiftedChat, InputToolbar, Bubble } from "react-native-gifted-chat";
 import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 
@@ -75,11 +76,12 @@ const Chat = ({ route, navigation, db }) => {
   }, []);
 
   return (
-    <View style={[styles.container]}>
+    <SafeAreaView style={[styles.container]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={90}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        enabled
       >
         <GiftedChat
           messages={messages}
@@ -95,11 +97,9 @@ const Chat = ({ route, navigation, db }) => {
           listViewProps={{
             style: { backgroundColor: backgroundColor }
           }}
-          text={text}
-          onInputTextChanged={setText}
         />
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 };
 
