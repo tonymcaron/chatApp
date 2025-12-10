@@ -77,28 +77,21 @@ const Chat = ({ route, navigation, db }) => {
 
   return (
     <SafeAreaView style={[styles.container]}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
-        enabled
-      >
-        <GiftedChat
-          messages={messages}
-          renderBubble={renderBubble}
-          renderInputToolbar={renderInputToolbar}
-          onSend={messages => onSend(messages)}
-          user={{
-            _id: userId,
-            name: name
-          }}
-          alwaysShowSend
-          minInputToolbarHeight={60}
-          listViewProps={{
-            style: { backgroundColor: backgroundColor }
-          }}
-        />
-      </KeyboardAvoidingView>
+      <GiftedChat
+        messages={messages}
+        renderBubble={renderBubble}
+        renderInputToolbar={renderInputToolbar}
+        onSend={messages => onSend(messages)}
+        user={{
+          _id: userId,
+          name: name
+        }}
+        alwaysShowSend
+        minInputToolbarHeight={60}
+        listViewProps={{
+          style: { backgroundColor: backgroundColor }
+        }}
+      />
     </SafeAreaView>
   );
 };

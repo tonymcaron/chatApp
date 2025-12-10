@@ -10,8 +10,7 @@ import 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-// TODO: Replace with your Firebase project's Web config from
-// Firebase Console → Project settings → General → Your apps (Web)
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyA8fb8kv2N7_9P-flSqo8Cc4SLbVE0mSHE",
   authDomain: "chatapp-d3684.firebaseapp.com",
