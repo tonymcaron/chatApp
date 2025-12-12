@@ -29,8 +29,8 @@ const Chat = ({ route, navigation, db }) => {
           padding: 6,
         }}
       />
-    )
-  }
+    );
+  };
 
   const onSend = (newMessages) => {
     addDoc(collection(db, "messages"), newMessages[0])
@@ -76,22 +76,43 @@ const Chat = ({ route, navigation, db }) => {
   }, []);
 
   return (
-    <SafeAreaView style={[styles.container]}>
-      <GiftedChat
-        messages={messages}
-        renderBubble={renderBubble}
-        renderInputToolbar={renderInputToolbar}
-        onSend={messages => onSend(messages)}
-        user={{
-          _id: userId,
-          name: name
-        }}
-        alwaysShowSend
-        minInputToolbarHeight={60}
-        listViewProps={{
-          style: { backgroundColor: backgroundColor }
-        }}
-      />
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+
+      {/* Android-only keyboard handling */}
+      {Platform.OS === "android" ? (
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior="height"
+          keyboardVerticalOffset={0}
+        >
+          <GiftedChat
+            messages={messages}
+            renderBubble={renderBubble}
+            renderInputToolbar={renderInputToolbar}
+            onSend={messages => onSend(messages)}
+            user={{ _id: userId, name }}
+            alwaysShowSend
+            minInputToolbarHeight={60}
+            listViewProps={{
+              style: { backgroundColor: backgroundColor }
+            }}
+          />
+        </KeyboardAvoidingView>
+      ) : (
+        // iPhone (no KeyboardAvoidingView!)
+        <GiftedChat
+          messages={messages}
+          renderBubble={renderBubble}
+          renderInputToolbar={renderInputToolbar}
+          onSend={messages => onSend(messages)}
+          user={{ _id: userId, name }}
+          alwaysShowSend
+          minInputToolbarHeight={60}
+          listViewProps={{
+            style: { backgroundColor: backgroundColor }
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -101,18 +122,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // Custom styling for the text input field
-  // textInput: {
-  // borderRadius: 20,
-  // borderWidth: 1,
-  // borderColor: '#E5E5EA',
-  // paddingHorizontal: 15,
-  // paddingVertical: 10,
-  // fontSize: 16,
-  // backgroundColor: '#FFFFFF',
-  // marginHorizontal: 10,
-  // marginVertical: 5,
-  // },
 });
 
 export default Chat;
