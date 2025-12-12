@@ -95,8 +95,6 @@ const Chat = ({ route, navigation, db }) => {
             listViewProps={{
               style: { backgroundColor: backgroundColor }
             }}
-            text={text}
-            onInputChanged={setText}
           />
         </KeyboardAvoidingView>
       ) : (
@@ -112,8 +110,6 @@ const Chat = ({ route, navigation, db }) => {
           listViewProps={{
             style: { backgroundColor: backgroundColor }
           }}
-          text={text}
-          onInputChanged={setText}
         />
       )}
 
