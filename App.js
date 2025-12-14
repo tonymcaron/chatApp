@@ -1,10 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Alert } from 'react-native';
 import React, { useEffect, useMemo, useRef } from 'react';
 
 // Firebase instances (initialized centrally in firebase.js)
 import { db, storage } from './firebase';
-import { enableNetwork, disableNetwork } from 'firebase/firestore';
+import { enableNetwork, disableNetwork, getfirestore } from 'firebase/firestore';
 import { useNetInfo } from '@react-native-community/netinfo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getStorage } from 'firebase/storage'
 
 // Import the screens
 import Start from './components/Start';
@@ -26,24 +28,14 @@ const App = () => {
   }, [netInfo.isConnected, netInfo.isInternetReachable]);
   // removed duplicate immediate smoke test; handled below in dev-only effect
 
-  // Toggle Firestore network based on connectivity
+  // netInfo from student example
   useEffect(() => {
-    let cancelled = false;
-    const toggle = async () => {
-      try {
-        if (isConnected) {
-          await enableNetwork(db);
-        } else {
-          await disableNetwork(db);
-        }
-      } catch (e) {
-        if (__DEV__) console.warn('Firestore network toggle failed:', e?.message || e);
-      }
-    };
-    toggle();
-    return () => {
-      cancelled = true;
-    };
+    if (!isConnected) {
+      Alert.alert("Connection lost")
+      disableNetwork(db);
+    } else {
+      enableNetwork(db);
+    }
   }, [isConnected]);
 
   return (
@@ -61,11 +53,19 @@ const App = () => {
         }}
       >
         <Stack.Screen name="Start" options={{ title: 'Welcome' }}>
-          {(props) => <Start {...props} isConnected={isConnected} />}
+          {(props) => <Start
+            {...props}
+            isConnected={isConnected}
+          />}
         </Stack.Screen>
         {/* Pass the Firestore database instance to Chat without putting it in navigation state */}
         <Stack.Screen name="Chat">
-          {(props) => <Chat {...props} db={db} storage={storage} isConnected={isConnected} />}
+          {(props) => <Chat
+            {...props}
+            db={db}
+            storage={storage}
+            isConnected={isConnected}
+          />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>

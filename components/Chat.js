@@ -8,10 +8,11 @@ import {
 } from 'react-native';
 import { GiftedChat, InputToolbar, Bubble } from "react-native-gifted-chat";
 import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MESSAGES_KEY = 'chat_messages';
 
-const Chat = ({ route, navigation, db }) => {
+const Chat = ({ route, navigation, db, storage, isConnected }) => {
   const { name, backgroundColor, userId } = route.params;
   // State to store chat messages
   const [messages, setMessages] = useState([]);
@@ -19,7 +20,7 @@ const Chat = ({ route, navigation, db }) => {
   let unsubMessages;
 
   const renderInputToolbar = (props) => {
-    return (
+    if (isConnected) return (
       <InputToolbar
         {...props}
         containerStyle={{
@@ -29,7 +30,8 @@ const Chat = ({ route, navigation, db }) => {
         }}
       />
     );
-  };
+    else return null;
+  }
 
   const onSend = (newMessages) => {
     addDoc(collection(db, "messages"), newMessages[0])
@@ -53,26 +55,48 @@ const Chat = ({ route, navigation, db }) => {
     //Sets username as title
     navigation.setOptions({ title: name });
 
-    // Query to sort messages in descending order
-    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+    if (isConnected) {
+      // Query to sort messages in descending order
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
 
-    unsubMessages = onSnapshot(q, (documentsSnapshot) => {
-      let newMessages = [];
-      documentsSnapshot.forEach(doc => {
-        newMessages.push({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: new Date(doc.data().createdAt.toMillis())
+      unsubMessages = onSnapshot(q, async (documentsSnapshot) => {
+        let newMessages = [];
+        documentsSnapshot.forEach(doc => {
+          newMessages.push({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: new Date(doc.data().createdAt.toMillis())
+          })
         })
+        cacheMessages(newMessages);
+        setMessages(newMessages);
       })
-      setMessages(newMessages);
-    });
+    } else loadCachedMessages();
 
     // Clean up code
     return () => {
       if (unsubMessages) unsubMessages();
     }
-  }, []);
+  }, [isConnected]);
+
+  const loadCachedMessages = async () => {
+    try {
+      const cachedMessages = await AsyncStorage.getItem('messages');
+      if (cachedMessages) {
+        setMessages(JSON.parse(cachedMessages));
+      }
+    } catch (error) {
+      console.error('Failed to load messages from AsyncStorage:', error);
+    }
+  };
+
+  const cacheMessages = async (messagesToCache) => {
+    try {
+      await AsyncStorage.setItem('messages', JSON.stringify(messagesToCache));
+    } catch (error) {
+      console.error('Failed to cache messages', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -85,13 +109,14 @@ const Chat = ({ route, navigation, db }) => {
           keyboardVerticalOffset={0}
         >
           <GiftedChat
+            key={isConnected ? 'online' : 'offline'}
             messages={messages}
             renderBubble={renderBubble}
             renderInputToolbar={renderInputToolbar}
             onSend={messages => onSend(messages)}
             user={{ _id: userId, name }}
-            alwaysShowSend
-            minInputToolbarHeight={60}
+            alwaysShowSend={isConnected}
+            minInputToolbarHeight={isConnected ? 60 : 0}
             listViewProps={{
               style: { backgroundColor: backgroundColor }
             }}
@@ -100,13 +125,14 @@ const Chat = ({ route, navigation, db }) => {
       ) : (
         // iPhone (no KeyboardAvoidingView!)
         <GiftedChat
+          key={isConnected ? 'online' : 'offline'}
           messages={messages}
           renderBubble={renderBubble}
           renderInputToolbar={renderInputToolbar}
           onSend={messages => onSend(messages)}
           user={{ _id: userId, name }}
-          alwaysShowSend
-          minInputToolbarHeight={60}
+          alwaysShowSend={isConnected}
+          minInputToolbarHeight={isConnected ? 60 : 0}
           listViewProps={{
             style: { backgroundColor: backgroundColor }
           }}
