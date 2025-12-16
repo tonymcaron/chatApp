@@ -6,7 +6,6 @@ import { db, storage } from './firebase';
 import { enableNetwork, disableNetwork, getfirestore } from 'firebase/firestore';
 import { useNetInfo } from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getStorage } from 'firebase/storage'
 
 // Import the screens
 import Start from './components/Start';

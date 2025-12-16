@@ -9,6 +9,8 @@ import {
 import { GiftedChat, InputToolbar, Bubble } from "react-native-gifted-chat";
 import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomActions from './CustomActions';
+import MapView from "react-native-maps";
 
 const MESSAGES_KEY = 'chat_messages';
 
@@ -20,6 +22,7 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
   let unsubMessages;
 
   const renderInputToolbar = (props) => {
+    // Show input toolbar if online
     if (isConnected) return (
       <InputToolbar
         {...props}
@@ -30,6 +33,7 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
         }}
       />
     );
+    // Hides input toolbar if offline
     else return null;
   }
 
@@ -79,6 +83,7 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
     }
   }, [isConnected]);
 
+  // Loads cached messages when offline
   const loadCachedMessages = async () => {
     try {
       const cachedMessages = await AsyncStorage.getItem('messages');
@@ -90,6 +95,7 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
     }
   };
 
+  // Caches messages to AsyncStorage
   const cacheMessages = async (messagesToCache) => {
     try {
       await AsyncStorage.setItem('messages', JSON.stringify(messagesToCache));
@@ -97,6 +103,36 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
       console.error('Failed to cache messages', error);
     }
   };
+
+  const renderCustomActions = (props) => {
+    return <CustomActions
+      storage={storage}
+      onSend={onSend}
+      {...props} />;
+  };
+
+  const renderCustomView = (props) => {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{
+            width: 150,
+            height: 100,
+            borderRadius: 13,
+            margin: 3
+          }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -114,6 +150,8 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
             renderBubble={renderBubble}
             renderInputToolbar={renderInputToolbar}
             onSend={messages => onSend(messages)}
+            renderActions={renderCustomActions}
+            renderCustomView={renderCustomView}
             user={{ _id: userId, name }}
             alwaysShowSend={isConnected}
             minInputToolbarHeight={isConnected ? 60 : 0}
@@ -130,6 +168,8 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
           renderBubble={renderBubble}
           renderInputToolbar={renderInputToolbar}
           onSend={messages => onSend(messages)}
+          renderActions={renderCustomActions}
+          renderCustomView={renderCustomView}
           user={{ _id: userId, name }}
           alwaysShowSend={isConnected}
           minInputToolbarHeight={isConnected ? 60 : 0}
