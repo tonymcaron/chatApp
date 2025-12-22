@@ -17,3 +17,7 @@ A React Native, mobile chat application developed using Expo, and utilizes Fireb
 - React Native GiftedChat
 - Expo Image Picker
 - Expo Location
+
+## Running the App
+Start the Expo development server:
+`npx expo start`
