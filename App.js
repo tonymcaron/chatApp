@@ -1,19 +1,23 @@
-import { StyleSheet, Alert } from 'react-native';
-import React, { useEffect, useMemo, useRef } from 'react';
+import { StyleSheet, Alert } from "react-native";
+import React, { useEffect, useMemo, useRef } from "react";
 
 // Firebase instances (initialized centrally in firebase.js)
-import { db, storage } from './firebase';
-import { enableNetwork, disableNetwork, getfirestore } from 'firebase/firestore';
-import { useNetInfo } from '@react-native-community/netinfo';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { db, storage } from "./firebase";
+import {
+  enableNetwork,
+  disableNetwork,
+  getfirestore,
+} from "firebase/firestore";
+import { useNetInfo } from "@react-native-community/netinfo";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import the screens
-import Start from './components/Start';
-import Chat from './components/Chat';
+import Start from "./components/Start";
+import Chat from "./components/Chat";
 
 // Import react Navigation
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,14 +27,16 @@ const App = () => {
   const isConnected = useMemo(() => {
     // Treat undefined isInternetReachable as true when connected to avoid false negatives on first load
     const reachable = netInfo.isInternetReachable;
-    return Boolean(netInfo.isConnected && (reachable === undefined || reachable));
+    return Boolean(
+      netInfo.isConnected && (reachable === undefined || reachable),
+    );
   }, [netInfo.isConnected, netInfo.isInternetReachable]);
   // removed duplicate immediate smoke test; handled below in dev-only effect
 
   // netInfo from student example
   useEffect(() => {
     if (!isConnected) {
-      Alert.alert("Connection lost")
+      Alert.alert("Connection lost");
       disableNetwork(db);
     } else {
       enableNetwork(db);
@@ -43,53 +49,52 @@ const App = () => {
         initialRouteName="Start"
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#757083',
+            backgroundColor: "#757083",
           },
-          headerTintColor: '#fff',
+          headerTintColor: "#fff",
           headerTitleStyle: {
-            fontWeight: 'bold',
+            fontWeight: "bold",
           },
         }}
       >
-        <Stack.Screen name="Start" options={{ title: 'Welcome' }}>
-          {(props) => <Start
-            {...props}
-            isConnected={isConnected}
-          />}
+        <Stack.Screen name="Start" options={{ title: "Welcome" }}>
+          {(props) => <Start {...props} isConnected={isConnected} />}
         </Stack.Screen>
         {/* Pass the Firestore database instance to Chat without putting it in navigation state */}
         <Stack.Screen name="Chat">
-          {(props) => <Chat
-            {...props}
-            db={db}
-            storage={storage}
-            isConnected={isConnected}
-          />}
+          {(props) => (
+            <Chat
+              {...props}
+              db={db}
+              storage={storage}
+              isConnected={isConnected}
+            />
+          )}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2C3E50',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#2C3E50",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   text: {
     fontSize: 28,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 20,
   },
   subText: {
     fontSize: 18,
-    color: '#BDC3C7',
-    textAlign: 'center',
+    color: "#BDC3C7",
+    textAlign: "center",
   },
 });
 
