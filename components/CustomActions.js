@@ -1,19 +1,25 @@
-import { TouchableOpacity, Text, View, StyleSheet, Alert } from 'react-native';
-import { useActionSheet } from '@expo/react-native-action-sheet';
-import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
-import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
+import { TouchableOpacity, Text, View, StyleSheet, Alert } from "react-native";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
+import { uploadBytes, ref, getDownloadURL } from "firebase/storage";
 
-const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userId }) => {
+const CustomActions = ({
+  wrapperStyle,
+  iconTextStyle,
+  onSend,
+  storage,
+  userId,
+}) => {
   const actionSheet = useActionSheet();
 
   // ActionSheet menu and handles selection
   const onActionPress = () => {
     const options = [
-      'Choose From Library',
-      'Take Picture',
-      'Send Location',
-      'Cancel'
+      "Choose From Library",
+      "Take Picture",
+      "Send Location",
+      "Cancel",
     ];
     const cancelButtonIndex = options.length - 1;
     actionSheet.showActionSheetWithOptions(
@@ -24,15 +30,15 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userId })
       async (buttonIndex) => {
         switch (buttonIndex) {
           case 0:
-            console.log('user wants to pick an image');
+            console.log("user wants to pick an image");
             pickImage();
             return;
           case 1:
-            console.log('user wants to take a photo');
+            console.log("user wants to take a photo");
             takePhoto();
             return;
           case 2:
-            console.log('user wants to get their location');
+            console.log("user wants to get their location");
             getLocation();
           default:
         }
@@ -42,10 +48,10 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userId })
 
   // Generates unique Firebase storage reference string
   const generateReference = (uri) => {
-    const timeStamp = (new Date()).getTime();
+    const timeStamp = new Date().getTime();
     const imageName = uri.split("/")[uri.split("/").length - 1];
     return `${userId}-${timeStamp}-${imageName}`;
-  }
+  };
 
   // Uploads image to Firebase storage and sends image as a message
   const uploadAndSendImage = async (imageURI) => {
@@ -54,10 +60,10 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userId })
     const response = await fetch(imageURI);
     const blob = await response.blob();
     uploadBytes(newUploadRef, blob).then(async (snapshot) => {
-      const imageURL = await getDownloadURL(snapshot.ref)
-      onSend({ image: imageURL })
+      const imageURL = await getDownloadURL(snapshot.ref);
+      onSend({ image: imageURL });
     });
-  }
+  };
 
   // Permission to access library and selects image to send
   const pickImage = async () => {
@@ -68,7 +74,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userId })
       if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
       else Alert.alert("Permissions haven't been granted.");
     }
-  }
+  };
 
   // Permission to access device camera and take photo to send
   const takePhoto = async () => {
@@ -79,7 +85,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userId })
       if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
       else Alert.alert("Permissions haven't been granted.");
     }
-  }
+  };
 
   // Permission to access device location and send as a message
   const getLocation = async () => {
@@ -88,7 +94,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userId })
     if (permissions?.granted) {
       let location = await Location.getCurrentPositionAsync({});
       if (location) {
-        console.log('sending the location occurs here');
+        console.log("sending the location occurs here");
         onSend({
           location: {
             longitude: location.coords.longitude,
@@ -99,18 +105,16 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userId })
     } else {
       Alert.alert("Permissions haven't been granted.");
     }
-  }
+  };
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={onActionPress} >
+    <TouchableOpacity style={styles.container} onPress={onActionPress}>
       <View style={[styles.wrapper, wrapperStyle]}>
         <Text style={[styles.iconText, iconTextStyle]}>+</Text>
       </View>
     </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -121,16 +125,16 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     borderRadius: 13,
-    borderColor: '#b2b2b2',
+    borderColor: "#b2b2b2",
     borderWidth: 2,
     flex: 1,
   },
   iconText: {
-    color: '#b2b2b2',
-    fontWeight: 'bold',
+    color: "#b2b2b2",
+    fontWeight: "bold",
     fontSize: 16,
-    backgroundColor: 'transparent',
-    textAlign: 'center',
+    backgroundColor: "transparent",
+    textAlign: "center",
   },
 });
 
